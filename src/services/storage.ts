@@ -161,31 +161,52 @@ export const DEFAULT_STORE: CybershieldStore = {
   ],
   emergencyContacts: [
     {
-      id: 'ec-1',
-      name: '24/7 Security Operations Center (SOC)',
-      role: 'Primary Emergency & Incident Dispatch',
-      phone: '+1 (800) 555-0199',
+      id: 'ec-112',
+      name: '112 - National Emergency Response Support (ERSS)',
+      role: 'All-in-One Police, Fire, Ambulance & Disaster',
+      phone: '112',
       priority: 1,
     },
     {
-      id: 'ec-2',
-      name: 'Corporate IT & Infrastructure Helpdesk',
-      role: 'Network & System Outages',
-      phone: '+1 (800) 555-0120',
+      id: 'ec-1930',
+      name: '1930 - National Cyber Crime Emergency (MHA / I4C)',
+      role: 'Financial Fraud, Cyber Attacks & Account Freeze',
+      phone: '1930',
+      priority: 1,
+    },
+    {
+      id: 'ec-100',
+      name: '100 - Police Emergency Control Dispatch',
+      role: 'Direct Police Response & Protection',
+      phone: '100',
       priority: 2,
     },
     {
-      id: 'ec-3',
-      name: 'Facility & Building Physical Security',
-      role: 'On-Site Security, Lockouts & Access',
-      phone: '+1 (800) 555-0182',
+      id: 'ec-108',
+      name: '108 - Emergency Medical Ambulance & Trauma',
+      role: 'Emergency Medical Care & Hospital Transport',
+      phone: '108',
+      priority: 2,
+    },
+    {
+      id: 'ec-101',
+      name: '101 - Fire & Rescue Emergency Services',
+      role: 'Firefighting, Evacuation & Hazardous Rescue',
+      phone: '101',
       priority: 3,
     },
     {
-      id: 'ec-4',
-      name: 'Employee Safety & Crisis Coordinator',
-      role: 'Staff Welfare, Medical & Field Safety',
-      phone: '+1 (800) 555-0155',
+      id: 'ec-1091',
+      name: '1091 - Women Safety & Distress Helpline',
+      role: '24/7 Women Protection & Emergency Support',
+      phone: '1091',
+      priority: 3,
+    },
+    {
+      id: 'ec-soc',
+      name: 'CyberShield 24/7 Security Operations Center',
+      role: 'Internal Cybersecurity Incident Response',
+      phone: '+91 11 2345 6789',
       priority: 4,
     },
   ],
@@ -211,12 +232,19 @@ export function loadStore(): CybershieldStore {
         (c: any) => !c.role.toLowerCase().includes('containment') && !c.role.toLowerCase().includes('hazmat')
       );
 
+      const hasIndianContacts = (parsed.emergencyContacts || []).some(
+        (c: any) => c.id?.startsWith('ec-112') || c.id?.startsWith('ec-1930') || c.phone === '112' || c.phone === '1930'
+      );
+      const finalContacts = hasIndianContacts && sanitizedContacts.length > 0 
+        ? sanitizedContacts 
+        : DEFAULT_STORE.emergencyContacts;
+
       return {
         ...DEFAULT_STORE,
         ...parsed,
         milestones: sanitizedMilestones.length > 0 ? sanitizedMilestones : DEFAULT_STORE.milestones,
         reminders: sanitizedReminders.length > 0 ? sanitizedReminders : DEFAULT_STORE.reminders,
-        emergencyContacts: sanitizedContacts.length > 0 ? sanitizedContacts : DEFAULT_STORE.emergencyContacts,
+        emergencyContacts: finalContacts,
       };
     }
   } catch (err) {

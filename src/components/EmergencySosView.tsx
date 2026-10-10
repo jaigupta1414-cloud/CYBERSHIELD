@@ -31,9 +31,16 @@ import { notificationService } from '../services/notifications';
 interface EmergencySosViewProps {
   operator: OperatorProfile;
   emergencyContacts: EmergencyContact[];
+  onAddContact?: (contact: EmergencyContact) => void;
+  onDeleteContact?: (id: string) => void;
 }
 
-export const EmergencySosView: React.FC<EmergencySosViewProps> = ({ operator, emergencyContacts }) => {
+export const EmergencySosView: React.FC<EmergencySosViewProps> = ({ 
+  operator, 
+  emergencyContacts,
+  onAddContact,
+  onDeleteContact,
+}) => {
   const [geoState, setGeoState] = useState<GeoLocationState>({
     latitude: null,
     longitude: null,
@@ -61,8 +68,33 @@ export const EmergencySosView: React.FC<EmergencySosViewProps> = ({ operator, em
   const [isSpeakingLocation, setIsSpeakingLocation] = useState<boolean>(false);
   const [contrastTheme, setContrastTheme] = useState<'gold' | 'yellow' | 'white'>('gold');
 
+  const [showAddContactModal, setShowAddContactModal] = useState<boolean>(false);
+  const [newContactName, setNewContactName] = useState<string>('');
+  const [newContactRole, setNewContactRole] = useState<string>('');
+  const [newContactPhone, setNewContactPhone] = useState<string>('');
+
   const countdownTimerRef = useRef<any>(null);
   const geoWatchIdRef = useRef<number | null>(null);
+
+  const fetchAddress = async (lat: number, lon: number) => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`, {
+        headers: { 'Accept': 'application/json' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.display_name) {
+          const road = data.address?.road || '';
+          const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county || '';
+          const state = data.address?.state || '';
+          const shortAddr = [road, city, state].filter(Boolean).join(', ') || data.display_name;
+          setGeoState((prev) => ({ ...prev, address: shortAddr }));
+        }
+      }
+    } catch {
+      // Ignore geocode error
+    }
+  };
 
   // Initialize Geolocation Tracking
   useEffect(() => {
@@ -142,9 +174,12 @@ export const EmergencySosView: React.FC<EmergencySosViewProps> = ({ operator, em
   };
 
   const updateGeo = (pos: GeolocationPosition) => {
-    setGeoState({
-      latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude,
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    setGeoState((prev) => ({
+      ...prev,
+      latitude: lat,
+      longitude: lon,
       accuracy: Math.round(pos.coords.accuracy),
       altitude: pos.coords.altitude ? Math.round(pos.coords.altitude) : null,
       heading: pos.coords.heading ? Math.round(pos.coords.heading) : null,
@@ -152,7 +187,8 @@ export const EmergencySosView: React.FC<EmergencySosViewProps> = ({ operator, em
       timestamp: pos.timestamp,
       error: null,
       trackingActive: true,
-    });
+    }));
+    fetchAddress(lat, lon);
   };
 
   // SOS Countdown & Activation Logic
@@ -244,13 +280,13 @@ export const EmergencySosView: React.FC<EmergencySosViewProps> = ({ operator, em
     setTimeout(() => setCopiedBeacon(false), 2000);
   };
 
-  // Plain-English emergency share text for non-technical users
   const getPlainEnglishEmergencyText = () => {
     const lat = geoState.latitude ? geoState.latitude.toFixed(6) : '37.774929';
     const lon = geoState.longitude ? geoState.longitude.toFixed(6) : '-122.419416';
     const acc = geoState.accuracy ? `within ${geoState.accuracy} meters` : 'within 10 meters';
     const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
-    return `🚨 EMERGENCY: I need immediate assistance!\n📍 My current GPS coordinates: Latitude ${lat}, Longitude ${lon} (Accurate ${acc})\n🗺️ Tap to view location pin: ${mapUrl}\n👤 Operator / Reporter: ${operator.callsign} (${operator.badgeNumber})`;
+    const addressLine = geoState.address ? `\n🏢 Physical Address: ${geoState.address}` : '';
+    return `🚨 EMERGENCY: I need immediate assistance!\n📍 GPS coordinates: Latitude ${lat}, Longitude ${lon} (Accurate ${acc})${addressLine}\n🗺️ Tap for location pin: ${mapUrl}\n👤 Operator / Reporter: ${operator.callsign} (${operator.badgeNumber})`;
   };
 
   const handleCopyLocation = () => {
@@ -649,7 +685,17 @@ export const EmergencySosView: React.FC<EmergencySosViewProps> = ({ operator, em
                   Emergency Response Dispatch Line
                 </h3>
               </div>
-              <span className="text-[10px] text-slate-500 font-semibold font-mono-code">DIRECT COMMS</span>
+              <div className="flex items-center gap-2">
+                {onAddContact && (
+                  <button
+                    onClick={() => setShowAddContactModal(true)}
+                    className="text-[10px] px-2 py-0.5 rounded bg-cyan-600 hover:bg-cyan-700 text-white font-bold cursor-pointer transition"
+                  >
+                    + Add
+                  </button>
+                )}
+                <span className="text-[10px] text-slate-500 font-semibold font-mono-code">DIRECT COMMS</span>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -658,22 +704,33 @@ export const EmergencySosView: React.FC<EmergencySosViewProps> = ({ operator, em
                   key={contact.id}
                   className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800"
                 >
-                  <div>
-                    <div className="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                  <div className="min-w-0 pr-2">
+                    <div className="font-bold text-slate-900 dark:text-slate-100 text-xs truncate">
                       {contact.name}
                     </div>
-                    <div className="text-[11px] text-slate-500">
+                    <div className="text-[11px] text-slate-500 truncate">
                       {contact.role} · {contact.phone}
                     </div>
                   </div>
 
-                  <a
-                    href={`tel:${contact.phone.replace(/[^0-9+]/g, '')}`}
-                    className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-xs"
-                  >
-                    <PhoneCall className="w-3.5 h-3.5" />
-                    <span>Call</span>
-                  </a>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <a
+                      href={`tel:${contact.phone.replace(/[^0-9+]/g, '')}`}
+                      className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-xs"
+                    >
+                      <PhoneCall className="w-3.5 h-3.5" />
+                      <span>Call</span>
+                    </a>
+                    {onDeleteContact && emergencyContacts.length > 2 && (
+                      <button
+                        onClick={() => onDeleteContact(contact.id)}
+                        className="p-1.5 text-slate-400 hover:text-rose-500 transition cursor-pointer"
+                        title="Remove contact"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -1214,6 +1271,105 @@ export const EmergencySosView: React.FC<EmergencySosViewProps> = ({ operator, em
               </div>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Add Personal Emergency Contact */}
+      {showAddContactModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs font-sans">
+          <div className="w-full max-w-sm bg-white dark:bg-[#141822] text-slate-900 dark:text-white rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+              <h3 className="text-sm font-bold">
+                Add Emergency Contact
+              </h3>
+              <button
+                onClick={() => setShowAddContactModal(false)}
+                className="text-slate-400 hover:text-slate-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!newContactName || !newContactPhone) return;
+                if (onAddContact) {
+                  onAddContact({
+                    id: `ec-${Date.now()}`,
+                    name: newContactName,
+                    role: newContactRole || 'Emergency Contact',
+                    phone: newContactPhone,
+                    priority: emergencyContacts.length + 1,
+                  });
+                  sound.playSuccess();
+                  notificationService.send('Contact Added', `Saved emergency contact ${newContactName}.`);
+                }
+                setShowAddContactModal(false);
+                setNewContactName('');
+                setNewContactRole('');
+                setNewContactPhone('');
+              }}
+              className="space-y-3 text-xs"
+            >
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                  Contact Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newContactName}
+                  onChange={e => setNewContactName(e.target.value)}
+                  placeholder="e.g. Sarah Jenkins (Director) or Family"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                  Role / Description
+                </label>
+                <input
+                  type="text"
+                  value={newContactRole}
+                  onChange={e => setNewContactRole(e.target.value)}
+                  placeholder="e.g. IT Incident Lead, Manager, Family"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={newContactPhone}
+                  onChange={e => setNewContactPhone(e.target.value)}
+                  placeholder="e.g. +1 (800) 555-0199"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddContactModal(false)}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-semibold cursor-pointer shadow-xs"
+                >
+                  Save Contact
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

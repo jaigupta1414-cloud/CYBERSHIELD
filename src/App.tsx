@@ -21,12 +21,13 @@ import { EmergencySosView } from './components/EmergencySosView';
 import { VaultView } from './components/VaultView';
 import { AuthModal } from './components/AuthModal';
 import { CommandPalette } from './components/CommandPalette';
+import { LaptopProtectionModal } from './components/LaptopProtectionModal';
 import { IncidentDetailView } from './components/IncidentDetailView';
 import { SecurityIncident } from './types';
 
 export default function App() {
   const [store, setStore] = useState<CybershieldStore>(() => loadStore());
-  const [activeTab, setActiveTab] = useState<SubsystemTab>('network'); // default to Network & Domains matching screenshot!
+  const [activeTab, setActiveTab] = useState<SubsystemTab>('overview');
 
   // Theming & Accessibility - Simple Mode defaults to TRUE for non-technical users!
   const [simpleMode, setSimpleMode] = useState<boolean>(true);
@@ -58,6 +59,7 @@ export default function App() {
   // Modals & Palette
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showLaptopProtectionModal, setShowLaptopProtectionModal] = useState(false);
 
   // Cluster Telemetry live simulation
   const [clusterLatency, setClusterLatency] = useState(14);
@@ -219,6 +221,7 @@ export default function App() {
         firebaseUser={firebaseUser}
         onGoogleSignIn={handleGoogleSignIn}
         onGoogleSignOut={handleGoogleSignOut}
+        onOpenLaptopProtection={() => setShowLaptopProtectionModal(true)}
       />
 
       {/* Main Layout Area */}
@@ -234,6 +237,7 @@ export default function App() {
             setActiveTab('emergency');
             sound.playWarning();
           }}
+          onOpenLaptopProtection={() => setShowLaptopProtectionModal(true)}
         />
 
         {/* Central Workspace Content */}
@@ -262,6 +266,7 @@ export default function App() {
               store={store}
               setStore={setStore}
               onNavigateToTab={(tab) => setActiveTab(tab)}
+              onOpenLaptopProtection={() => setShowLaptopProtectionModal(true)}
             />
           )}
 
@@ -269,6 +274,16 @@ export default function App() {
             <EmergencySosView
               operator={store.operator}
               emergencyContacts={store.emergencyContacts}
+              onAddContact={(contact) => {
+                const updated = { ...store, emergencyContacts: [...store.emergencyContacts, contact] };
+                setStore(updated);
+                saveStore(updated);
+              }}
+              onDeleteContact={(id) => {
+                const updated = { ...store, emergencyContacts: store.emergencyContacts.filter(c => c.id !== id) };
+                setStore(updated);
+                saveStore(updated);
+              }}
             />
           )}
 
@@ -309,6 +324,13 @@ export default function App() {
         }}
         toggleDarkMode={toggleDarkMode}
         toggleOffline={toggleSimulatedOffline}
+        onOpenLaptopProtection={() => setShowLaptopProtectionModal(true)}
+      />
+
+      {/* Dedicated Laptop Protection Center Modal */}
+      <LaptopProtectionModal
+        isOpen={showLaptopProtectionModal}
+        onClose={() => setShowLaptopProtectionModal(false)}
       />
 
     </div>

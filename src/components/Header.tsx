@@ -6,12 +6,12 @@ import {
   Moon, 
   Eye, 
   UserCheck, 
-  Wifi, 
-  WifiOff, 
   Radio, 
   Menu, 
   X,
-  LogOut
+  LogOut,
+  Search,
+  Laptop
 } from 'lucide-react';
 import { SubsystemTab, OperatorProfile, SyncStatus } from '../types';
 import { sound } from '../services/audio';
@@ -33,6 +33,7 @@ interface HeaderProps {
   firebaseUser: any;
   onGoogleSignIn: () => void;
   onGoogleSignOut: () => void;
+  onOpenLaptopProtection?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -46,31 +47,31 @@ export const Header: React.FC<HeaderProps> = ({
   toggleDarkMode,
   isHighContrast,
   toggleHighContrast,
-  toggleSimulatedOffline,
   mobileMenuOpen,
   setMobileMenuOpen,
   firebaseUser,
   onGoogleSignIn,
   onGoogleSignOut,
+  onOpenLaptopProtection,
 }) => {
   const tabs: { id: SubsystemTab; label: string }[] = [
-    { id: 'incident', label: 'Incident #87795' },
     { id: 'overview', label: 'Overview' },
+    { id: 'incident', label: 'Incidents' },
+    { id: 'network', label: 'Network' },
+    { id: 'emergency', label: 'Emergency SOS' },
+    { id: 'compliance', label: 'Compliance' },
     { id: 'vault', label: 'Vault' },
-    { id: 'network', label: 'Network & Domains' },
-    { id: 'compliance', label: 'Legal & Compliance' },
-    { id: 'emergency', label: 'SOS Alert' },
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0c1017]/95 backdrop-blur-md px-3 sm:px-6 py-2.5 transition-colors">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0c1017]/95 backdrop-blur-md px-3 sm:px-6 py-2.5 transition-colors font-sans">
       <div className="flex items-center justify-between gap-3 max-w-[1700px] mx-auto">
         
-        {/* Brand & Node Status (Exact match to screenshot) */}
-        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+        {/* Simple & Clean Brand Header */}
+        <div className="flex items-center gap-3 shrink-0">
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition"
+            className="md:hidden p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
             aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -78,40 +79,46 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => {
-              setActiveTab('network');
+              setActiveTab('overview');
               sound.playBeep(700, 0.05);
             }}
-            className="flex items-center gap-2.5 text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 rounded px-1"
+            className="flex items-center gap-2.5 text-left group focus-visible:outline-none rounded-lg cursor-pointer"
           >
-            <div className="w-8 h-8 rounded bg-slate-900 dark:bg-cyan-950/80 border border-slate-700 dark:border-cyan-500/40 flex items-center justify-center text-cyan-400 group-hover:scale-105 transition-transform shadow-xs">
-              <Shield className="w-4 h-4 fill-cyan-400/20" />
+            <div className="w-9 h-9 rounded-xl bg-cyan-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+              <Shield className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-mono-code font-bold text-sm tracking-wider text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <span>CYBERSHIELD</span>
-                <span className="hidden xl:inline-block text-[10px] uppercase px-1.5 py-0.2 bg-cyan-100 dark:bg-cyan-950/60 text-cyan-800 dark:text-cyan-300 font-semibold rounded border border-cyan-300 dark:border-cyan-800">
-                  SECURE_SSL
-                </span>
+              <div className="font-bold text-sm tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
+                CyberShield
               </div>
-              <div className="flex items-center gap-1.5 text-[11px] font-mono-code text-slate-500 dark:text-slate-400">
-                <span className="relative flex h-2 w-2">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${syncStatus.isOnline ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${syncStatus.isOnline ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                  {syncStatus.isOnline ? 'Online' : 'Offline'}
                 </span>
-                <span className="hidden sm:inline">NODE-09 ::</span>
-                <span className={syncStatus.isOnline ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-amber-600 dark:text-amber-400 font-medium'}>
-                  {syncStatus.isOnline ? 'ONLINE' : 'CACHED'}
-                </span>
-                <span className="hidden sm:inline text-slate-400 dark:text-slate-600">192.168.1.104</span>
-                <span className="hidden lg:inline text-slate-300 dark:text-slate-700">|</span>
-                <span className="hidden lg:inline text-[10px] text-cyan-600 dark:text-cyan-400 font-semibold">TLS 1.3 / ENCRYPTED</span>
+                <span className="text-slate-300 dark:text-slate-700">·</span>
+                <span>Protected</span>
               </div>
             </div>
           </button>
+
+          {/* This Laptop Protection Pill */}
+          <button
+            onClick={() => {
+              if (onOpenLaptopProtection) onOpenLaptopProtection();
+              sound.playBeep(700, 0.04);
+            }}
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition cursor-pointer shadow-2xs"
+            title="Check real-time laptop protection shields, run scan, and view threat defense"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+            <Laptop className="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <span>This Laptop: Protected</span>
+          </button>
         </div>
 
-        {/* Desktop Navigation Tabs (Exact match to middle screenshot) */}
-        <nav className="hidden lg:flex items-center gap-1 bg-slate-100/80 dark:bg-slate-900/80 p-1 rounded-md border border-slate-200 dark:border-slate-800 font-mono-code text-xs">
+        {/* Clean Navigation Tabs */}
+        <nav className="hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-slate-900/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-medium">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -121,9 +128,9 @@ export const Header: React.FC<HeaderProps> = ({
                   setActiveTab(tab.id);
                   sound.playBeep(isActive ? 600 : 750, 0.04);
                 }}
-                className={`px-3 py-1.5 rounded transition-all font-medium flex items-center gap-1.5 ${
+                className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                   isActive
-                    ? 'bg-slate-900 text-white dark:bg-cyan-950 dark:text-cyan-300 shadow-xs border border-slate-800 dark:border-cyan-500/30'
+                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs font-semibold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-800/40'
                 }`}
               >
@@ -136,104 +143,68 @@ export const Header: React.FC<HeaderProps> = ({
           })}
         </nav>
 
-        {/* Right Tools & Operator Profile */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* Right Tools & User Profile */}
+        <div className="flex items-center gap-2">
 
-          {/* Offline / Online indicator */}
-          <button
-            onClick={() => {
-              toggleSimulatedOffline();
-              sound.playBeep(500, 0.05);
-            }}
-            title={syncStatus.isOnline ? 'Online (Click to simulate offline)' : 'Offline (Click to restore online)'}
-            className="hidden md:flex items-center gap-1 p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
-          >
-            {syncStatus.isOnline ? (
-              <Wifi className="w-4 h-4 text-emerald-500" />
-            ) : (
-              <WifiOff className="w-4 h-4 text-amber-500" />
-            )}
-          </button>
-
-          {/* Command Terminal Trigger */}
+          {/* Quick Search / Command Console button */}
           <button
             onClick={() => {
               onOpenCommandPalette();
               sound.playBeep(800, 0.04);
             }}
-            title="Command Console (Ctrl+K or ⌘K)"
-            className="p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
-            aria-label="Open Command Console"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-xs transition cursor-pointer shadow-2xs"
+            title="Search commands and pages (Ctrl+K)"
           >
-            <Terminal className="w-4 h-4" />
+            <Search className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Search</span>
+            <kbd className="hidden sm:inline px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-[10px] font-mono text-slate-500">
+              ⌘K
+            </kbd>
           </button>
 
-          {/* High Contrast Toggle */}
-          <button
-            onClick={() => {
-              toggleHighContrast();
-              sound.playBeep(650, 0.04);
-            }}
-            title={isHighContrast ? 'Disable High Contrast' : 'Enable High Contrast'}
-            className={`p-1.5 rounded transition border ${
-              isHighContrast 
-                ? 'bg-amber-400 text-slate-950 border-amber-500 font-bold' 
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-transparent hover:border-slate-200 dark:hover:border-slate-700'
-            }`}
-            aria-label="Toggle High Contrast"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-
-          {/* Theme Switcher - High-Visibility Toggle */}
+          {/* Theme Switcher Toggle */}
           <button
             onClick={() => {
               toggleDarkMode();
               sound.playBeep(isDarkMode ? 750 : 950, 0.05);
             }}
-            title={isDarkMode ? 'Theme: Dark Mode (Click to switch to Light Mode)' : 'Theme: Light Mode (Click to switch to Dark Mode)'}
-            className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 font-mono-code text-xs font-semibold shadow-xs transition"
+            className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             aria-label="Toggle Theme"
           >
             {isDarkMode ? (
-              <>
-                <Moon className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="hidden sm:inline text-[11px] text-slate-300">Dark</span>
-              </>
+              <Sun className="w-4 h-4 text-amber-400" />
             ) : (
-              <>
-                <Sun className="w-3.5 h-3.5 text-amber-500" />
-                <span className="hidden sm:inline text-[11px] text-slate-700">Light</span>
-              </>
+              <Moon className="w-4 h-4 text-slate-600" />
             )}
           </button>
 
           {/* Google Sign-In with Firebase or Operator Badge */}
           {firebaseUser ? (
-            <div className="flex items-center gap-1.5 pl-1.5 pr-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 font-mono-code text-[11px]">
+            <div className="flex items-center gap-2 pl-2 pr-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-xs">
               {firebaseUser.photoURL ? (
                 <img src={firebaseUser.photoURL} alt="Profile" className="w-5 h-5 rounded-full" />
               ) : (
-                <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[9px] font-bold">
-                  {firebaseUser.displayName?.charAt(0) || 'G'}
+                <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">
+                  {firebaseUser.displayName?.charAt(0) || 'U'}
                 </div>
               )}
-              <span className="hidden sm:inline font-bold text-emerald-800 dark:text-emerald-200 truncate max-w-[80px]">
+              <span className="hidden sm:inline font-semibold text-emerald-800 dark:text-emerald-200 truncate max-w-[90px]">
                 {firebaseUser.displayName?.split(' ')[0] || 'User'}
               </span>
               <button
                 onClick={onGoogleSignOut}
                 title="Sign out of Google"
-                className="text-slate-400 hover:text-rose-500 p-0.5"
+                className="text-slate-400 hover:text-rose-500 p-0.5 cursor-pointer"
               >
-                <LogOut className="w-3 h-3" />
+                <LogOut className="w-3.5 h-3.5" />
               </button>
             </div>
           ) : (
             <button
               onClick={onGoogleSignIn}
-              title="Sign in with Google Account to save to Firebase"
-              className="hidden sm:flex items-center gap-1 px-2 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-50 font-mono-code text-[11px] font-semibold transition"
+              title="Sign in with Google to sync data"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition cursor-pointer shadow-2xs"
             >
               <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -245,25 +216,24 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Operator Profile Pill (Matches middle screenshot top-right) */}
+          {/* User Profile Pill */}
           <button
             onClick={() => {
               onOpenAuth();
               sound.playBeep(850, 0.04);
             }}
-            className="flex items-center gap-2 pl-2 pr-2.5 py-1 rounded bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-left transition group"
-            title="Operator Security Profile & Access Level"
+            className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-left transition cursor-pointer"
+            title="Security Profile"
           >
-            <div className="w-6 h-6 rounded-full bg-cyan-700 dark:bg-cyan-900 border border-cyan-400/40 flex items-center justify-center text-[10px] font-mono-code font-bold text-white shrink-0">
-              882
+            <div className="w-6 h-6 rounded-full bg-cyan-700 text-white flex items-center justify-center text-xs font-bold shrink-0">
+              {operator.callsign.charAt(0)}
             </div>
             <div className="hidden xl:block">
-              <div className="text-[10px] font-mono-code font-bold text-slate-800 dark:text-slate-200 leading-none">
-                {operator.badgeNumber}
+              <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight">
+                {operator.callsign || 'Analyst'}
               </div>
-              <div className="text-[9px] font-mono-code text-cyan-600 dark:text-cyan-400 font-semibold leading-tight flex items-center gap-1">
-                <UserCheck className="w-2.5 h-2.5" />
-                <span>LEVEL-{operator.clearanceLevel} ACCESS</span>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
+                {operator.role || 'Security Analyst'}
               </div>
             </div>
           </button>
@@ -271,52 +241,10 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Mobile Drawer (Visible when hamburger is toggled) */}
+      {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
         <div className="lg:hidden mt-2 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-3 animate-fadeIn">
-          
-          {/* Mobile Theme Toggle Card */}
-          <div className="flex items-center justify-between p-3 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-2.5">
-              {isDarkMode ? <Moon className="w-5 h-5 text-cyan-400" /> : <Sun className="w-5 h-5 text-amber-500" />}
-              <div>
-                <div className="text-xs font-bold text-slate-900 dark:text-white">Appearance Theme</div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Current: {isDarkMode ? 'Dark Tactical' : 'Light Clean'}
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                toggleDarkMode();
-                sound.playBeep(isDarkMode ? 750 : 950, 0.05);
-              }}
-              className="px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-cyan-950 text-white dark:text-cyan-300 text-xs font-bold border border-slate-700 dark:border-cyan-600/40 shadow-sm"
-            >
-              {isDarkMode ? '☀️ Switch to Light' : '🌙 Switch to Dark'}
-            </button>
-          </div>
-
-          {/* High Contrast Controls */}
-          <div>
-            <button
-              onClick={() => {
-                toggleHighContrast();
-                sound.playBeep(650, 0.04);
-              }}
-              className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-semibold ${
-                isHighContrast
-                  ? 'bg-amber-400 text-slate-950 border-amber-500 font-bold'
-                  : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
-              }`}
-            >
-              <Eye className="w-4 h-4" />
-              <span>{isHighContrast ? 'High Contrast Active' : 'Enable High Contrast'}</span>
-            </button>
-          </div>
-
-          {/* Mobile Navigation Shortcuts */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 font-mono-code text-xs pt-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs pt-1">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
@@ -327,10 +255,10 @@ export const Header: React.FC<HeaderProps> = ({
                     setMobileMenuOpen(false);
                     sound.playBeep(isActive ? 600 : 750, 0.04);
                   }}
-                  className={`p-2 rounded text-left transition truncate ${
+                  className={`p-2.5 rounded-lg text-left transition truncate cursor-pointer ${
                     isActive
-                      ? 'bg-slate-900 text-white dark:bg-cyan-950 dark:text-cyan-300 font-bold border border-slate-800 dark:border-cyan-500/40'
-                      : 'bg-slate-50 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50'
+                      ? 'bg-cyan-600 text-white font-bold'
+                      : 'bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
                   {tab.label}
@@ -339,19 +267,17 @@ export const Header: React.FC<HeaderProps> = ({
             })}
           </div>
 
-          {/* Google Sign-in on mobile if not signed in */}
           {!firebaseUser && (
             <button
               onClick={() => {
                 onGoogleSignIn();
                 setMobileMenuOpen(false);
               }}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold"
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold cursor-pointer"
             >
-              <span>Sign in with Google to Sync</span>
+              <span>Sign in with Google</span>
             </button>
           )}
-
         </div>
       )}
     </header>

@@ -71,7 +71,7 @@ export interface TaskReminder {
   dueTime: string;
   priority: 'CRITICAL' | 'HIGH' | 'ROUTINE';
   notified: boolean;
-  category: 'NETWORK' | 'COMPLIANCE' | 'BIO-DEFENSE' | 'CLUSTER';
+  category: 'SECURITY' | 'COMPLIANCE' | 'NETWORK' | 'INFRASTRUCTURE' | 'INCIDENT';
 }
 
 export interface EmergencyContact {
@@ -92,20 +92,7 @@ export interface GeoLocationState {
   timestamp: number | null;
   error: string | null;
   trackingActive: boolean;
-}
-
-export interface ScienceQueryTarget {
-  id: string;
-  name: string;
-  type: 'PROTEIN' | 'CHEMICAL' | 'PATHOGEN';
-  identifier: string; // PDB ID, UniProt ID, PubChem CID
-  description: string;
-  classification: string;
-  riskTier: 'BSL-1' | 'BSL-2' | 'BSL-3' | 'BSL-4' | 'BENIGN';
-  formula?: string;
-  mw?: number;
-  plddtAvg?: number;
-  provenance: string;
+  address?: string | null;
 }
 
 export interface SyncStatus {

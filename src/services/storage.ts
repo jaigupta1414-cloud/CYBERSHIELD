@@ -19,7 +19,7 @@ export interface CybershieldStore {
   isSimulatedOffline: boolean;
 }
 
-const DEFAULT_STORE: CybershieldStore = {
+export const DEFAULT_STORE: CybershieldStore = {
   dnsRecords: [
     {
       id: 'rec-1',
@@ -42,7 +42,15 @@ const DEFAULT_STORE: CybershieldStore = {
       type: 'TXT',
       host: '_cybershield_challenge',
       ttl: '60s',
-      targetValue: 'v=spf1 include:_spf.internal.cybershield.net ~all',
+      targetValue: 'v=spf1 include:_spf.google.com ~all',
+      status: 'PROPAGATED',
+    },
+    {
+      id: 'rec-4',
+      type: 'MX',
+      host: '@ (root)',
+      ttl: '3600s',
+      targetValue: 'aspmx.l.google.com (Priority 1)',
       status: 'PROPAGATED',
     },
   ],
@@ -56,128 +64,160 @@ const DEFAULT_STORE: CybershieldStore = {
     maxConcurrency: 8192,
   },
   operator: {
-    id: 'op-882',
-    callsign: 'KILOBIT-9',
-    badgeNumber: 'SEC-OP: 882',
+    id: 'op-401',
+    callsign: 'Security Analyst',
+    badgeNumber: 'SEC-ADMIN: 401',
     clearanceLevel: 4,
-    role: 'Cyber-Physical Defense Lead',
-    station: 'Node-09 Mobile & Laptop Station',
+    role: 'Senior Cybersecurity Analyst & Incident Commander',
+    station: 'Primary Security Operations Center',
     lastActive: 'Just now',
-    authToken: 'CS-TOKEN-882-LEVEL-4-SIG-VALID',
+    authToken: 'CS-AUTH-TOKEN-SEC-401',
   },
   milestones: [
     {
       id: 'ms-1',
-      title: 'VPC Edge Router & 10GbE Ingress Hardening',
-      subsystem: 'Network & Domains',
+      title: 'Company-Wide Multi-Factor Authentication (MFA) Enforcement',
+      subsystem: 'Security Operations',
       status: 'COMPLETED',
       progress: 100,
       deadline: '2026-03-28',
-      lead: 'SEC-OP: 882',
-      notes: 'RFC 6066 OCSP stapling verified and live loopback locked to 127.0.0.1:4000.',
+      lead: 'SEC-ADMIN: 401',
+      notes: 'FIDO2 & Authenticator app enforcement verified across all 180 corporate accounts.',
     },
     {
       id: 'ms-2',
-      title: 'ISO/IEC-27001 Local-First Telemetry Compliance Audit',
-      subsystem: 'Legal & Compliance',
+      title: 'VPC Ingress Rate Limiting & Web Application Firewall Rules',
+      subsystem: 'Network & Domains',
       status: 'COMPLETED',
       progress: 100,
       deadline: '2026-03-30',
-      lead: 'SEC-OP: 882',
-      notes: 'Daemon signature valid. Zero 3rd party tracker script injections.',
+      lead: 'NET-ENG: 104',
+      notes: 'Blocked abusive HTTP scraping patterns and established 100 req/min rate limits per IP.',
     },
     {
       id: 'ms-3',
-      title: 'Bio-Defense Molecular Vault & AlphaFold Synchronization',
-      subsystem: 'Science Lab',
+      title: 'Endpoint Detection & Response (EDR) Agent Rollout',
+      subsystem: 'Security Operations',
       status: 'IN_PROGRESS',
-      progress: 78,
+      progress: 88,
       deadline: '2026-04-15',
-      lead: 'DR. V. REID',
-      notes: 'Ingesting 4-tier pLDDT scoring and PubChem GHS biosafety handling directives.',
+      lead: 'SEC-ADMIN: 401',
+      notes: 'Deployed next-gen behavioral monitoring to 142/160 macOS and Windows laptops.',
     },
     {
       id: 'ms-4',
-      title: 'Distributed Emergency SOS & Geo-Beacon Mesh Handshake',
-      subsystem: 'Emergency SOS',
+      title: 'ISO/IEC-27001 Annual Third-Party Security Audit',
+      subsystem: 'Compliance',
       status: 'IN_PROGRESS',
-      progress: 85,
-      deadline: '2026-04-18',
-      lead: 'SEC-OP: 882',
-      notes: 'Real-time GPS tracker with audio siren frequency ramp tested on mobile viewports.',
+      progress: 65,
+      deadline: '2026-04-30',
+      lead: 'AUDIT-LEAD',
+      notes: 'Access control matrices, encryption in transit, and offline backup procedures undergoing review.',
     },
     {
       id: 'ms-5',
-      title: 'Safe-Rollback Protocol for Next-Gen 100G Transceivers',
-      subsystem: 'Node Ops',
+      title: 'Disaster Recovery & Redundant DNS Failover Drill',
+      subsystem: 'Network & Domains',
       status: 'SCHEDULED',
-      progress: 25,
-      deadline: '2026-05-01',
-      lead: 'CLUSTER-SYS',
-      notes: 'Pending final hardware stress test on rack node 9.',
+      progress: 30,
+      deadline: '2026-05-15',
+      lead: 'NET-ENG: 104',
+      notes: 'Simulated primary datacenter outage and validated automatic route shifting.',
     },
   ],
   reminders: [
     {
       id: 'rem-1',
-      title: 'Rotate Let’s Encrypt RSA 4096 bundle (82 days remaining)',
-      dueTime: '2026-06-20',
+      title: 'Renew Let’s Encrypt wildcard SSL certificate (64 days remaining)',
+      dueTime: '2026-06-15',
       priority: 'HIGH',
       notified: false,
       category: 'NETWORK',
     },
     {
       id: 'rem-2',
-      title: 'Run periodic ISO-27001 SHA-256 hash validation',
-      dueTime: '2026-04-05',
-      priority: 'ROUTINE',
+      title: 'Audit privileged administrator accounts & remove inactive API tokens',
+      dueTime: '2026-04-12',
+      priority: 'CRITICAL',
       notified: false,
-      category: 'COMPLIANCE',
+      category: 'SECURITY',
     },
     {
       id: 'rem-3',
-      title: 'Audit emergency contact dispatch broadcast line',
-      dueTime: 'Tomorrow, 09:00',
-      priority: 'CRITICAL',
+      title: 'Conduct monthly emergency contact line & SMS notification drill',
+      dueTime: 'Tomorrow, 10:00 AM',
+      priority: 'HIGH',
       notified: false,
-      category: 'BIO-DEFENSE',
+      category: 'INCIDENT',
+    },
+    {
+      id: 'rem-4',
+      title: 'Verify offline immutable database backup integrity checksums',
+      dueTime: 'Weekly on Friday',
+      priority: 'ROUTINE',
+      notified: false,
+      category: 'INFRASTRUCTURE',
     },
   ],
   emergencyContacts: [
     {
       id: 'ec-1',
-      name: 'SOC Primary Dispatcher',
-      role: 'Emergency Tactical Response',
+      name: '24/7 Security Operations Center (SOC)',
+      role: 'Primary Emergency & Incident Dispatch',
       phone: '+1 (800) 555-0199',
       priority: 1,
     },
     {
       id: 'ec-2',
-      name: 'HazMat / Bio-Safety Officer',
-      role: 'Level-4 Containment Team',
-      phone: '+1 (800) 555-0144',
+      name: 'Corporate IT & Infrastructure Helpdesk',
+      role: 'Network & System Outages',
+      phone: '+1 (800) 555-0120',
       priority: 2,
     },
     {
       id: 'ec-3',
-      name: 'On-Call Security Supervisor',
-      role: 'Station Lead (Node-09)',
+      name: 'Facility & Building Physical Security',
+      role: 'On-Site Security, Lockouts & Access',
       phone: '+1 (800) 555-0182',
       priority: 3,
+    },
+    {
+      id: 'ec-4',
+      name: 'Employee Safety & Crisis Coordinator',
+      role: 'Staff Welfare, Medical & Field Safety',
+      phone: '+1 (800) 555-0155',
+      priority: 4,
     },
   ],
   lastSyncTimestamp: new Date().toISOString(),
   isSimulatedOffline: false,
 };
 
-const STORAGE_KEY = 'cybershield_unified_store_v1';
+const STORAGE_KEY = 'cybershield_unified_store_v2';
 
 export function loadStore(): CybershieldStore {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      return { ...DEFAULT_STORE, ...parsed };
+      // Cleanse any old obsolete sci-fi milestones or reminders
+      const sanitizedMilestones = (parsed.milestones || DEFAULT_STORE.milestones).filter(
+        (m: any) => !m.subsystem.toLowerCase().includes('science') && !m.subsystem.toLowerCase().includes('node ops')
+      );
+      const sanitizedReminders = (parsed.reminders || DEFAULT_STORE.reminders).filter(
+        (r: any) => r.category !== 'BIO-DEFENSE' && r.category !== 'CLUSTER'
+      );
+      const sanitizedContacts = (parsed.emergencyContacts || DEFAULT_STORE.emergencyContacts).filter(
+        (c: any) => !c.role.toLowerCase().includes('containment') && !c.role.toLowerCase().includes('hazmat')
+      );
+
+      return {
+        ...DEFAULT_STORE,
+        ...parsed,
+        milestones: sanitizedMilestones.length > 0 ? sanitizedMilestones : DEFAULT_STORE.milestones,
+        reminders: sanitizedReminders.length > 0 ? sanitizedReminders : DEFAULT_STORE.reminders,
+        emergencyContacts: sanitizedContacts.length > 0 ? sanitizedContacts : DEFAULT_STORE.emergencyContacts,
+      };
     }
   } catch (err) {
     console.warn('Failed to load store from localStorage', err);
@@ -193,11 +233,20 @@ export function saveStore(store: CybershieldStore): void {
   }
 }
 
+export function resetStoreToDefaults(): CybershieldStore {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_STORE));
+  } catch (err) {
+    console.error('Failed to reset store', err);
+  }
+  return DEFAULT_STORE;
+}
+
 export function exportStoreAsJson(store: CybershieldStore): void {
   const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(store, null, 2));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute('href', dataStr);
-  downloadAnchor.setAttribute('download', `cybershield-backup-${new Date().toISOString().slice(0, 10)}.json`);
+  downloadAnchor.setAttribute('download', `cybershield-security-backup-${new Date().toISOString().slice(0, 10)}.json`);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
